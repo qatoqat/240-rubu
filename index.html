@@ -49,7 +49,7 @@ h2{font-family:var(--display);font-weight:500;font-size:1.2rem;margin:0 0 10px}
 /* Ledger */
 .ledger{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
 table{border-collapse:collapse;width:100%;min-width:560px}
-th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 4px;border-bottom:1px solid var(--line)}
+th{position:sticky;top:0;background:var(--panel);z-index:1;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 4px;border-bottom:1px solid var(--line)}
 th.j{text-align:left;padding-left:12px}
 td{padding:3px 4px;border-bottom:1px solid var(--line)}
 tr:last-child td{border-bottom:0}
@@ -64,7 +64,7 @@ tr.weak td.j{color:var(--c)}
 .cell.B{background:var(--b);border-color:var(--b);color:#1d2321}
 .cell.C{background:var(--c);border-color:var(--c);color:#fff}
 .cell.due{box-shadow:0 0 0 2px var(--accent);border-color:var(--accent)}
-.cell.idle{opacity:.35}
+.cell.idle{opacity:.45;border-style:dashed}
 .hint{color:var(--muted);font-size:.85rem;margin:8px 0 0}
 .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 button.btn{font:inherit;font-size:.85rem;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
@@ -84,7 +84,14 @@ button.btn.danger{color:var(--c)}
 .today{margin-top:12px;padding:12px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;background:var(--panel)}
 .today .eyebrow{margin-bottom:6px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-family:var(--mono);font-size:.85rem;padding:3px 8px;border-radius:4px;background:var(--accent-soft);color:var(--ink);border:1px solid transparent}
+.chip{font-family:var(--mono);font-size:.85rem;padding:4px 9px;border-radius:4px;background:var(--accent-soft);color:var(--ink);border:1px solid transparent;cursor:pointer;display:inline-flex;gap:6px;align-items:baseline}
+.chip small{font-size:.7em;opacity:.7}
+.chip.open{outline:2px solid var(--accent);outline-offset:1px}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.pop{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.poprow{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:8px;max-width:420px}
+.popcell{display:grid;gap:3px;text-align:center;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.popcell .cell{height:34px}
 .chip.new{background:#dbeafe;color:#1e3a8a}
 .chip.back{background:#fef3c7;color:#78350f}
 .chip.weakj{border-color:var(--c)}
@@ -173,7 +180,7 @@ button.btn.danger{color:var(--c)}
     <div class="stats" id="stats"></div>
   </section>
 
-  <section>
+  <section id="ledgerPanel">
     <div class="ledger"><table id="grid"><thead><tr><th class="j">Juz</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead><tbody></tbody></table></div>
     <p class="hint">Tap a cell to cycle blank → A → B → C → blank. Rubu' 1 and 5 are the two hizb starts. A juz with any C is marked red: in pass mode, recite all 8 of its rubu' in the next pass; in step mode, repeat it tomorrow before moving on.</p>
   </section>
@@ -231,10 +238,13 @@ function activeSlots(j){
 function renderStep(){
   const sch=schedule(),k=state.step,cur=sch[k-1],prev=k>1?sch[k-2]:[];
   const seen=new Set();for(let i=0;i<k-1;i++)sch[i].forEach(j=>seen.add(j));
-  const k0=k;const chips=cur.map(j=>{const cls=!seen.has(j)?'new':!prev.includes(j)?'back':'';return `<span class="chip ${cls}${weakJuz(j)?' weakj':''}">${j}</span>`}).join('');
+  const chips=cur.map(j=>{const cls=!seen.has(j)?'new':!prev.includes(j)?'back':'';let a=0;for(let r=1;r<=8;r++)if(state.score[id(j,r)]==='A')a++;
+    return `<button type="button" class="chip ${cls}${weakJuz(j)?' weakj':''}${state.openJuz===j?' open':''}" data-j="${j}" aria-expanded="${state.openJuz===j}">${j}<small>${a}/8</small></button>`}).join('');
   const tally=Array(31).fill(0);sch.forEach(r=>r.forEach(j=>tally[j]++));
-  document.getElementById('today').innerHTML=`<div class="eyebrow">Step ${k} · ${cur.length} juz · ${cur.length*8} rubu’</div><div class="chips">${chips}</div>
-    <p class="hint">Blue: first time in this scheme. Amber: back after a gap. Red edge: juz with a C. Over all 30 steps each juz is recited ${Math.min(...tally.slice(1))}–${Math.max(...tally.slice(1))} times.</p>`;
+  document.getElementById('today').innerHTML=`<div class="eyebrow">Step ${k} · ${cur.length} juz · ${cur.length*8} rubu’</div><div class="chips">${chips}</div><div id="rubuPop"></div>
+    <p class="hint">Tap a juz to score its rubu'. Blue: first time in this scheme. Amber: back after a gap. Red edge: juz with a C. Over all 30 steps each juz is recited ${Math.min(...tally.slice(1))}–${Math.max(...tally.slice(1))} times.</p>`;
+  document.querySelectorAll('#today .chip').forEach(b=>b.onclick=()=>{const j=+b.dataset.j;state.openJuz=state.openJuz===j?null:j;save();renderStep()});
+  renderPop(cur);
   const lad=document.getElementById('ladder');lad.innerHTML='';
   lad.style.gridTemplateColumns=`repeat(${sch.length},1fr)`;
   for(let i=1;i<=sch.length;i++){const b=document.createElement('button');b.type='button';b.className='rung'+(state.stepDone[i]?' done':'')+(i===k?' cur':'');b.textContent=i;b.title='Step '+i+(state.stepDone[i]?' (clean)':'');
@@ -251,11 +261,27 @@ function renderGraph(sch){
   h+='</tbody><tfoot><tr><td></td>';for(let j=1;j<=30;j++)h+=`<td>${tot[j]}</td>`;h+='</tr></tfoot></table></div>';
   document.getElementById('graph').innerHTML=h;
 }
+function cellBtn(j,r){
+  const sc=state.score[id(j,r)]||'';const c=document.createElement('button');c.type='button';
+  c.className='cell '+sc;c.textContent=sc||'·';c.setAttribute('aria-label',`Juz ${j} rubu’ ${r}: ${sc||'not scored'}`);
+  c.onclick=()=>{const n=NEXT[state.score[id(j,r)]||''];if(n)state.score[id(j,r)]=n;else delete state.score[id(j,r)];save();render()};
+  return c;
+}
+function renderPop(cur){
+  const pop=document.getElementById('rubuPop');pop.innerHTML='';
+  const j=state.openJuz;if(!j||!cur.includes(j)){state.openJuz=null;return}
+  const box=document.createElement('div');box.className='pop';
+  box.innerHTML=`<div class="eyebrow">Juz ${String(j).padStart(2,'0')} · rubu’ 1–8 (1 and 5 are hizb starts)</div>`;
+  const row=document.createElement('div');row.className='poprow';
+  for(let r=1;r<=8;r++){const w=document.createElement('div');w.className='popcell';w.innerHTML=`<span>${r}</span>`;w.appendChild(cellBtn(j,r));row.appendChild(w)}
+  box.appendChild(row);pop.appendChild(box);
+}
 function renderMode(){
   document.getElementById('modePass').classList.toggle('on',state.mode==='pass');
   document.getElementById('modeStep').classList.toggle('on',state.mode==='step');
   document.getElementById('passPanel').hidden=state.mode!=='pass';
   document.getElementById('stepPanel').hidden=state.mode!=='step';
+  document.getElementById('ledgerPanel').hidden=state.mode==='step';
 }
 
 function renderTree(){
@@ -272,6 +298,7 @@ function renderTree(){
   });
 }
 function renderGrid(){
+  if(state.mode==='step')return;
   const tb=document.querySelector('#grid tbody');tb.innerHTML='';
   for(let j=1;j<=30;j++){
     const tr=document.createElement('tr');tr.className=(weakJuz(j)?'weak ':'')+(Math.floor((j-1)/5)%2?'band':'');
@@ -279,11 +306,7 @@ function renderGrid(){
     let aCount=0;for(let r=1;r<=8;r++)if(state.score[id(j,r)]==='A')aCount++;
     tr.innerHTML=`<td class="j">${String(j).padStart(2,'0')}<small>${aCount}/8 A</small></td>`;
     for(let r=1;r<=8;r++){
-      const td=document.createElement('td');const sc=state.score[id(j,r)]||'';
-      const c=document.createElement('button');c.type='button';
-      c.className='cell '+sc+(act.includes(r)?' due':' idle');c.textContent=sc||'·';
-      c.setAttribute('aria-label',`Juz ${j} rubu’ ${r}: ${sc||'not scored'}`);
-      c.onclick=()=>{const n=NEXT[sc];if(n)state.score[id(j,r)]=n;else delete state.score[id(j,r)];save();render()};
+      const td=document.createElement('td');const c=cellBtn(j,r);c.classList.add(act.includes(r)?'due':'idle');
       td.appendChild(c);tr.appendChild(td);
     }
     tb.appendChild(tr);
