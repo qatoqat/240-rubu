@@ -36,9 +36,6 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 .btn:hover{border-color:var(--accent)}.btn.danger{color:var(--c)}
 .btn:focus-visible,.chip:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .today{padding:14px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
-.thead{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.clean{font:inherit;font-size:.8rem;padding:3px 9px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
-.clean.on{background:var(--a);border-color:var(--a);color:#fff}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{position:relative;overflow:hidden;font-family:var(--mono);font-size:.95rem;min-width:46px;padding:7px 10px;border-radius:5px;background:var(--accent-soft);color:var(--ink);border:1px solid transparent;cursor:pointer}
 .chip.new{background:var(--new-bg);color:var(--new-fg)}
@@ -60,7 +57,7 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 .gt th.s{text-align:right;padding-right:6px;width:30px}
 .gt td{height:17px;padding:0;text-align:center;border-radius:3px;vertical-align:top;line-height:17px;color:var(--ink)}
 .gt td.b{background:var(--new-bg);color:var(--new-fg)}.gt td.a{background:var(--back-bg);color:var(--back-fg)}
-.gt td.run{border-left:2px solid var(--a)}.gt td.over{border-left:2px solid var(--c)}
+.gt td.over{border-left:2px solid var(--c)}
 .gt tfoot td{color:var(--muted)}
 .slide{flex:1 1 220px;min-width:0}
 .slide b{font-family:var(--mono);min-width:2ch;color:var(--ink)}
@@ -157,8 +154,7 @@ function renderToday(sch){
   const chips=cur.map(j=>{const cls=!seen.has(j)?'new':!prev.includes(j)?'back':'';const pr=progress(j);
     return `<button type="button" class="chip ${cls}${weakJuz(j)?' weakj':''}${state.openJuz===j?' open':''}" data-j="${j}" aria-expanded="${state.openJuz===j}">${j}${pr?`<i style="--corner:${corner(pr.p)}"></i>`:''}</button>`}).join('');
   const t=document.getElementById('today');
-  t.innerHTML=`<div class="thead"><span class="eyebrow">Step ${k} · ${cur.length} juz</span><button type="button" class="clean${state.stepDone[k]?' on':''}" id="cleanBtn" aria-pressed="${!!state.stepDone[k]}">✓ clean</button></div><div class="chips">${chips}</div><div id="pop"></div>`;
-  t.querySelector('#cleanBtn').onclick=()=>{state.stepDone[k]=!state.stepDone[k];save();render()};
+  t.innerHTML=`<div class="eyebrow">Step ${k} · ${cur.length} juz</div><div class="chips">${chips}</div><div id="pop"></div>`;
   t.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const j=+b.dataset.j;state.openJuz=state.openJuz===j?null:j;save();render()});
   const j=state.openJuz;if(!j||!cur.includes(j)){state.openJuz=null;return}
   const box=document.createElement('div');box.className='pop';
@@ -178,7 +174,7 @@ function renderGraph(sch){
   const N=sch.length,rows=sch.map(r=>new Set(r)),seen=new Set(),cell={},tot=Array(31).fill(0),L=state.scheme==='capped'?state.runL:Infinity;
   for(let j=1;j<=30;j++){let k=1;while(k<=N){if(rows[k-1].has(j)){let len=1;while(k+len<=N&&rows[k+len-1].has(j))len++;cell[k+'-'+j]={span:len,cls:seen.has(j)?'a':'b'};for(let q=1;q<len;q++)cell[(k+q)+'-'+j]='skip';seen.add(j);tot[j]+=len;k+=len}else k++}}
   let h='<div class="gwrap"><table class="gt"><thead><tr><th class="s"></th>';for(let j=1;j<=30;j++)h+=`<th>${j}</th>`;h+='</tr></thead><tbody>';
-  for(let k=1;k<=N;k++){h+=`<tr><th class="s">${k}</th>`;for(let j=1;j<=30;j++){const c=cell[k+'-'+j];if(c==='skip')continue;if(!c){h+='<td></td>';continue}const e=c.span>L?' over':c.span>1?' run':'';h+=`<td rowspan="${c.span}" class="${c.cls}${e}">${j}</td>`}h+='</tr>'}
+  for(let k=1;k<=N;k++){h+=`<tr><th class="s">${k}</th>`;for(let j=1;j<=30;j++){const c=cell[k+'-'+j];if(c==='skip')continue;if(!c){h+='<td></td>';continue}const e=c.span>L?' over':'';h+=`<td rowspan="${c.span}" class="${c.cls}${e}">${j}</td>`}h+='</tr>'}
   h+='</tbody><tfoot><tr><td></td>';for(let j=1;j<=30;j++)h+=`<td>${tot[j]}</td>`;h+='</tr></tfoot></table></div>';
   g.innerHTML=h;
 }
