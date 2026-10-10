@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0;font-family:system-ui,sans-serif;font-size:14px}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>240 Rubu&#8217;</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a 30-row ledger (one row per juz, 8 rubu' cells), with the four doubling passes as a tree above it. */
+:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1d2321; --muted:#6a716d; --line:#d9ddd8;
+  --accent:#1f6f5c; --accent-soft:#dcebe5;
+  --a:#2f8f5b; --b:#d19b2a; --c:#c3463c; --off:#e9ebe8; --band:#eef1ec;
+  --display:"Fraunces",Georgia,serif; --body:"Source Sans 3",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15191a; --panel:#1d2224; --ink:#e8ebe8; --muted:#97a09b; --line:#2f3739;
+  --accent:#5fbfa3; --accent-soft:#1e3a33; --a:#49b375; --b:#e0ae45; --c:#e0665b; --off:#262c2e; --band:#222829; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15191a; --panel:#1d2224; --ink:#e8ebe8; --muted:#97a09b; --line:#2f3739;
+  --accent:#5fbfa3; --accent-soft:#1e3a33; --a:#49b375; --b:#e0ae45; --c:#e0665b; --off:#262c2e; --band:#222829; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:24px 48px}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:20px}
+h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+h2{font-family:var(--display);font-weight:500;font-size:1.2rem;margin:0 0 10px}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* Pass tree */
+.tree{display:grid;gap:8px}
+.pass{display:grid;grid-template-columns:150px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer;text-align:left;color:inherit;font:inherit}
+.pass.active{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.pass:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pass .name{font-weight:600}
+.pass .name small{display:block;color:var(--muted);font-weight:400;font-size:.8rem}
+.slots{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;max-width:220px}
+.slot{height:10px;border-radius:2px;background:var(--off)}
+.slot.on{background:var(--accent)}
+.pct{font-family:var(--mono);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:9ch;text-align:right}
+.pct b{color:var(--ink)}
+
+/* Summary */
+.stats{display:flex;flex-wrap:wrap;gap:10px 22px;font-family:var(--mono);font-size:.85rem;font-variant-numeric:tabular-nums;color:var(--muted)}
+.stats span b{color:var(--ink)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+
+/* Ledger */
+.ledger{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 4px;border-bottom:1px solid var(--line)}
+th.j{text-align:left;padding-left:12px}
+td{padding:3px 4px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+tr.band td{background:var(--band)}
+td.j{font-family:var(--mono);font-size:.85rem;padding-left:12px;white-space:nowrap;width:1%;font-variant-numeric:tabular-nums}
+td.j small{color:var(--muted);margin-left:6px}
+tr.weak td.j{color:var(--c)}
+.cell{width:100%;height:30px;border:1px solid var(--line);border-radius:4px;background:var(--off);font:600 .8rem var(--mono);color:transparent;cursor:pointer;padding:0;transition:transform .08s}
+.cell:active{transform:scale(.94)}
+.cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.cell.A{background:var(--a);border-color:var(--a);color:#fff}
+.cell.B{background:var(--b);border-color:var(--b);color:#1d2321}
+.cell.C{background:var(--c);border-color:var(--c);color:#fff}
+.cell.due{box-shadow:0 0 0 2px var(--accent);border-color:var(--accent)}
+.cell.idle{opacity:.35}
+.hint{color:var(--muted);font-size:.85rem;margin:8px 0 0}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button.btn{font:inherit;font-size:.85rem;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.btn:hover{border-color:var(--accent)}
+button.btn.danger{color:var(--c)}
+@media (max-width:560px){.pass{grid-template-columns:1fr auto}.slots{grid-column:1/-1;max-width:none}}
+@media (prefers-reduced-motion:reduce){.cell{transition:none}}
+
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.segbtn{font:inherit;font-size:.9rem;padding:6px 16px;border:0;background:var(--panel);color:var(--muted);cursor:pointer}
+.segbtn.on{background:var(--accent);color:#fff}
+.segbtn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;font-size:.9rem}
+.ctl label{display:inline-flex;gap:6px;align-items:center;color:var(--muted)}
+.ctl select,.ctl input{font:inherit;font-size:.9rem;padding:4px 6px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink)}
+.ctl input[type=number]{width:4.5em}
+.today{margin-top:12px;padding:12px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;background:var(--panel)}
+.today .eyebrow{margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:.85rem;padding:3px 8px;border-radius:4px;background:var(--accent-soft);color:var(--ink);border:1px solid transparent}
+.chip.new{background:#dbeafe;color:#1e3a8a}
+.chip.back{background:#fef3c7;color:#78350f}
+.chip.weakj{border-color:var(--c)}
+:root[data-theme="dark"] .chip.new,:root:not([data-theme="light"]) .chip.new{background:#1e3a8a;color:#dbeafe}
+:root[data-theme="dark"] .chip.back,:root:not([data-theme="light"]) .chip.back{background:#78350f;color:#fef3c7}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .chip.new{background:#dbeafe;color:#1e3a8a}:root:not([data-theme="dark"]) .chip.back{background:#fef3c7;color:#78350f}}
+.stepladder{margin-top:12px;display:grid;grid-template-columns:repeat(30,1fr);gap:2px}
+.rung{height:14px;border-radius:2px;background:var(--off);font-size:.6rem;line-height:14px;text-align:center;color:var(--muted);cursor:pointer;border:0;padding:0}
+.rung.done{background:var(--a);color:#fff}
+.rung.cur{outline:2px solid var(--accent);outline-offset:1px}
+
+.guide{margin-top:14px;border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:8px 12px}
+.guide summary{cursor:pointer;font-weight:600}
+.guide dl{margin:8px 0 0;display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;font-size:.9rem}
+.guide dt{font-weight:600}.guide dd{margin:0;color:var(--muted);max-width:62ch}
+.gt{border-collapse:separate;border-spacing:2px;font-family:var(--mono);font-size:.7rem;width:100%;table-layout:fixed;margin-top:12px;font-variant-numeric:tabular-nums}
+.gt th{font-weight:500;color:var(--muted);padding:2px 0;text-align:center}
+.gt th.s{text-align:right;padding-right:6px;width:30px}
+.gt td{height:17px;padding:0;text-align:center;border-radius:3px;vertical-align:top;line-height:17px;color:var(--ink)}
+.gt td.b{background:#dbeafe;color:#1e3a8a}.gt td.a{background:#fef3c7;color:#78350f}
+:root:not([data-theme="light"]) .gt td.b{background:#1e3a8a;color:#dbeafe}:root:not([data-theme="light"]) .gt td.a{background:#78350f;color:#fef3c7}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .gt td.b{background:#dbeafe;color:#1e3a8a}:root:not([data-theme="dark"]) .gt td.a{background:#fef3c7;color:#78350f}}
+.gt td.run{border-left:2px solid var(--a)}.gt td.over{border-left:2px solid var(--c)}
+.gt tfoot td{color:var(--muted)}
+.gwrap{overflow-x:auto}
+@media (max-width:560px){.guide dl{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hifz review</div>
+    <h1>240 Rubu&#8217;</h1>
+    <p class="sub">Two ways to walk the mushaf. <b>Passes</b>: four sweeps of checkpoints, each twice as fine as the last. <b>Steps</b>: step k recites k whole juz, spread over the 30. Tap each rubu' after reciting it: A clean, B hesitated, C opened the mushaf. Outlined cells are what is due now.</p>
+  </header>
+
+  <div class="seg" role="tablist">
+    <button class="segbtn" id="modePass" role="tab">Passes</button>
+    <button class="segbtn" id="modeStep" role="tab">Steps</button>
+  </div>
+
+  <section id="passPanel">
+    <h2>Passes</h2>
+    <div class="tree" id="tree"></div>
+  </section>
+
+  <section id="stepPanel" hidden>
+    <h2>Steps</h2>
+    <div class="ctl">
+      <label>Scheme
+        <select id="scheme">
+          <option value="simple">Simple (12 steps)</option>
+          <option value="anchored">Anchored on juz 1 (original)</option>
+          <option value="rotating">Rotating start (step k starts at juz k)</option>
+          <option value="balanced">Balanced offsets (14–17 per juz)</option>
+          <option value="capped">Capped runs (on L, off G)</option>
+        </select>
+      </label>
+      <label id="capL">Run <input type="number" id="runL" min="1" max="30" value="2"></label>
+      <label id="capG">Rest <input type="number" id="runG" min="1" max="30" value="1"></label>
+      <label>Step <input type="number" id="stepNo" min="1" max="30" value="1"></label>
+      <button class="btn" id="stepPrev">−</button>
+      <button class="btn" id="stepNext">+</button>
+      <label><input type="checkbox" id="showGraph"> Show graph</label>
+    </div>
+    <div class="today" id="today"></div>
+    <div class="stepladder" id="ladder"></div>
+    <p class="hint">Hold a step until every juz in it is A, then move to the next.</p>
+    <div id="graph" hidden></div>
+    <details class="guide">
+      <summary>Guide to the schemes</summary>
+      <dl>
+        <dt>Simple</dt><dd>Twelve fixed steps: 3 juz spaced ten apart, then 6 spaced five apart, then eight blocks of five (odd then even in each third), then the five-juz blocks, then each half. Easy to remember; no formula.</dd>
+        <dt>Anchored on juz 1</dt><dd>Step k recites k juz starting at juz 1 and spaced 30/k apart. Juz 1 is in every step and juz 30 only appears at step 30, so the repetition count runs from 30 down to 1.</dd>
+        <dt>Rotating start</dt><dd>Same spacing, but step k starts at juz k and wraps around 30. Repetition count per juz falls between 9 and 22.</dd>
+        <dt>Balanced offsets</dt><dd>Same spacing; each step's start is chosen so the running totals stay even. Every juz ends up recited 14–17 times. The offsets have no pattern, so read them off the page.</dd>
+        <dt>Capped runs</dt><dd>No juz stays in the rotation more than L steps in a row; it then rests G steps. Steps are filled from the least-recited juz, which produces consecutive blocks sweeping through the mushaf. The cap cannot hold past the point where a step needs more than 30·L/(L+G) juz.</dd>
+        <dt>Formula</dt><dd>For the three spaced schemes: juz = 1 + (offset + ⌊i·30/k⌋) mod 30, for i = 0 … k−1.</dd>
+        <dt>Graph</dt><dd>Rows are steps, columns are juz. A juz carried over in consecutive steps is drawn as one merged block with a green edge. Blue is its first appearance in the scheme; amber is a return after a gap; red marks a run that exceeds the cap.</dd>
+      </dl>
+    </details>
+  </section>
+
+  <section>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section>
+    <div class="ledger"><table id="grid"><thead><tr><th class="j">Juz</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead><tbody></tbody></table></div>
+    <p class="hint">Tap a cell to cycle blank → A → B → C → blank. Rubu' 1 and 5 are the two hizb starts. A juz with any C is marked red: in pass mode, recite all 8 of its rubu' in the next pass; in step mode, repeat it tomorrow before moving on.</p>
+  </section>
+
+  <div class="tools">
+    <button class="btn" id="copy">Copy summary</button>
+    <button class="btn danger" id="reset">Clear all scores</button>
+    <span class="hint" id="msg"></span>
+  </div>
+</div>
+
+<script>
+const PASSES=[
+  {name:'Pass 1',sub:'rubu’ 1 of each juz',slots:[1]},
+  {name:'Pass 2',sub:'hizb starts: 1, 5',slots:[1,5]},
+  {name:'Pass 3',sub:'every other: 1, 3, 5, 7',slots:[1,3,5,7]},
+  {name:'Pass 4',sub:'all eight rubu’',slots:[1,2,3,4,5,6,7,8]},
+];
+const KEY='rubu-sweep-v1';
+let state={pass:0,score:{},mode:'pass',scheme:'anchored',step:1,runL:2,runG:1,stepDone:{}};
+const BAL=[0,1,2,3,5,4,3,10,0,2,18,2,25,0,1,0,16,1,18,0,8,4,8,0,0,3,4,2,7,0];
+const rng=(a,b,st=1)=>{const o=[];for(let j=a;j<=b;j+=st)o.push(j);return o};
+const SIMPLE=[[1,11,21],[1,6,11,16,21,26],rng(1,9,2),rng(2,10,2),rng(11,19,2),rng(12,20,2),rng(21,29,2),rng(22,30,2),
+  [...rng(1,5),...rng(11,15),...rng(21,25)],[...rng(6,10),...rng(16,20),...rng(26,30)],rng(1,15),rng(16,30)];
+function evenRow(k,off){const s=new Set();for(let i=0;i<k;i++)s.add(1+((off+Math.floor(i*30/k))%30));return [...s].sort((a,b)=>a-b)}
+function cappedSchedule(L,G){
+  const run=Array(31).fill(0),rest=Array(31).fill(0),tally=Array(31).fill(0),out=[];
+  for(let k=1;k<=30;k++){
+    for(let j=1;j<=30;j++)if(rest[j]>0)rest[j]--;
+    let elig=[];for(let j=1;j<=30;j++)if(rest[j]===0)elig.push(j);
+    elig.sort((a,b)=>(run[a]>0?0:1)-(run[b]>0?0:1)||tally[a]-tally[b]||a-b);
+    const chosen=new Set(elig.slice(0,k));
+    if(chosen.size<k){const extra=[];for(let j=1;j<=30;j++)if(!chosen.has(j))extra.push(j);extra.sort((a,b)=>rest[a]-rest[b]||tally[a]-tally[b]);for(const j of extra.slice(0,k-chosen.size))chosen.add(j)}
+    for(let j=1;j<=30;j++){if(chosen.has(j)){run[j]++;tally[j]++;if(run[j]>=L){rest[j]=G;run[j]=0}}else run[j]=0}
+    out.push([...chosen].sort((a,b)=>a-b));
+  }return out;
+}
+function schedule(){
+  const sc=state.scheme;
+  if(sc==='simple')return SIMPLE;
+  if(sc==='capped')return cappedSchedule(state.runL,state.runG);
+  const rows=[];for(let k=1;k<=30;k++){const off=sc==='anchored'?0:sc==='rotating'?k-1:BAL[k-1];rows.push(evenRow(k,off))}
+  return rows;
+}
+function stepJuz(){const sch=schedule();if(state.step>sch.length)state.step=sch.length;return sch[state.step-1]}
+try{const s=localStorage.getItem(KEY);if(s)state=Object.assign(state,JSON.parse(s))}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+const id=(j,r)=>j+'-'+r;
+const NEXT={'':'A','A':'B','B':'C','C':''};
+
+function weakJuz(j){for(let r=1;r<=8;r++)if(state.score[id(j,r)]==='C')return true;return false}
+function activeSlots(j){
+  if(state.mode==='step')return stepJuz().includes(j)?[1,2,3,4,5,6,7,8]:[];
+  const p=PASSES[state.pass];return (state.pass>0&&weakJuz(j))?[1,2,3,4,5,6,7,8]:p.slots}
+function renderStep(){
+  const sch=schedule(),k=state.step,cur=sch[k-1],prev=k>1?sch[k-2]:[];
+  const seen=new Set();for(let i=0;i<k-1;i++)sch[i].forEach(j=>seen.add(j));
+  const k0=k;const chips=cur.map(j=>{const cls=!seen.has(j)?'new':!prev.includes(j)?'back':'';return `<span class="chip ${cls}${weakJuz(j)?' weakj':''}">${j}</span>`}).join('');
+  const tally=Array(31).fill(0);sch.forEach(r=>r.forEach(j=>tally[j]++));
+  document.getElementById('today').innerHTML=`<div class="eyebrow">Step ${k} · ${cur.length} juz · ${cur.length*8} rubu’</div><div class="chips">${chips}</div>
+    <p class="hint">Blue: first time in this scheme. Amber: back after a gap. Red edge: juz with a C. Over all 30 steps each juz is recited ${Math.min(...tally.slice(1))}–${Math.max(...tally.slice(1))} times.</p>`;
+  const lad=document.getElementById('ladder');lad.innerHTML='';
+  lad.style.gridTemplateColumns=`repeat(${sch.length},1fr)`;
+  for(let i=1;i<=sch.length;i++){const b=document.createElement('button');b.type='button';b.className='rung'+(state.stepDone[i]?' done':'')+(i===k?' cur':'');b.textContent=i;b.title='Step '+i+(state.stepDone[i]?' (clean)':'');
+    b.onclick=()=>{if(i===state.step){state.stepDone[i]=!state.stepDone[i]}else state.step=i;save();render()};lad.appendChild(b)}
+  document.getElementById('stepNo').value=k;document.getElementById('stepNo').max=sch.length;
+  document.getElementById('showGraph').checked=!!state.graph;document.getElementById('graph').hidden=!state.graph;if(state.graph)renderGraph(sch);
+  document.getElementById('capL').hidden=document.getElementById('capG').hidden=state.scheme!=='capped';
+}
+function renderGraph(sch){
+  const N=sch.length,rows=sch.map(r=>new Set(r)),seen=new Set(),cell={},tot=Array(31).fill(0),L=state.scheme==='capped'?state.runL:Infinity;
+  for(let j=1;j<=30;j++){let k=1;while(k<=N){if(rows[k-1].has(j)){let len=1;while(k+len<=N&&rows[k+len-1].has(j))len++;cell[k+'-'+j]={span:len,cls:seen.has(j)?'a':'b'};for(let q=1;q<len;q++)cell[(k+q)+'-'+j]='skip';seen.add(j);tot[j]+=len;k+=len}else k++}}
+  let h='<div class="gwrap"><table class="gt"><thead><tr><th class="s">step</th>';for(let j=1;j<=30;j++)h+=`<th>${j}</th>`;h+='</tr></thead><tbody>';
+  for(let k=1;k<=N;k++){h+=`<tr><th class="s">${k}</th>`;for(let j=1;j<=30;j++){const c=cell[k+'-'+j];if(c==='skip')continue;if(!c){h+='<td></td>';continue}const e=c.span>L?' over':c.span>1?' run':'';h+=`<td rowspan="${c.span}" class="${c.cls}${e}">${j}</td>`}h+='</tr>'}
+  h+='</tbody><tfoot><tr><td></td>';for(let j=1;j<=30;j++)h+=`<td>${tot[j]}</td>`;h+='</tr></tfoot></table></div>';
+  document.getElementById('graph').innerHTML=h;
+}
+function renderMode(){
+  document.getElementById('modePass').classList.toggle('on',state.mode==='pass');
+  document.getElementById('modeStep').classList.toggle('on',state.mode==='step');
+  document.getElementById('passPanel').hidden=state.mode!=='pass';
+  document.getElementById('stepPanel').hidden=state.mode!=='step';
+}
+
+function renderTree(){
+  const t=document.getElementById('tree');t.innerHTML='';
+  PASSES.forEach((p,i)=>{
+    let done=0,total=0;
+    for(let j=1;j<=30;j++)for(const r of p.slots){total++;if(state.score[id(j,r)])done++}
+    const b=document.createElement('button');b.className='pass'+(i===state.pass?' active':'');b.type='button';
+    b.innerHTML=`<div class="name">${p.name}<small>${p.sub} · ${total} rubu’</small></div>
+      <div class="slots">${[1,2,3,4,5,6,7,8].map(r=>`<div class="slot${p.slots.includes(r)?' on':''}"></div>`).join('')}</div>
+      <div class="pct"><b>${done}</b>/${total}</div>`;
+    b.onclick=()=>{state.pass=i;save();render()};
+    t.appendChild(b);
+  });
+}
+function renderGrid(){
+  const tb=document.querySelector('#grid tbody');tb.innerHTML='';
+  for(let j=1;j<=30;j++){
+    const tr=document.createElement('tr');tr.className=(weakJuz(j)?'weak ':'')+(Math.floor((j-1)/5)%2?'band':'');
+    const act=activeSlots(j);
+    let aCount=0;for(let r=1;r<=8;r++)if(state.score[id(j,r)]==='A')aCount++;
+    tr.innerHTML=`<td class="j">${String(j).padStart(2,'0')}<small>${aCount}/8 A</small></td>`;
+    for(let r=1;r<=8;r++){
+      const td=document.createElement('td');const sc=state.score[id(j,r)]||'';
+      const c=document.createElement('button');c.type='button';
+      c.className='cell '+sc+(act.includes(r)?' due':' idle');c.textContent=sc||'·';
+      c.setAttribute('aria-label',`Juz ${j} rubu’ ${r}: ${sc||'not scored'}`);
+      c.onclick=()=>{const n=NEXT[sc];if(n)state.score[id(j,r)]=n;else delete state.score[id(j,r)];save();render()};
+      td.appendChild(c);tr.appendChild(td);
+    }
+    tb.appendChild(tr);
+  }
+}
+function counts(){const c={A:0,B:0,C:0};for(const k in state.score)c[state.score[k]]++;return c}
+function renderStats(){
+  const c=counts();const scored=c.A+c.B+c.C;const weak=[];for(let j=1;j<=30;j++)if(weakJuz(j))weak.push(j);
+  document.getElementById('stats').innerHTML=
+    `<span><b>${scored}</b>/240 scored</span>
+     <span><i class="dot" style="background:var(--a)"></i><b>${c.A}</b> A</span>
+     <span><i class="dot" style="background:var(--b)"></i><b>${c.B}</b> B</span>
+     <span><i class="dot" style="background:var(--c)"></i><b>${c.C}</b> C</span>
+     <span>weak juz: <b>${weak.length?weak.join(', '):'none'}</b></span>`;
+}
+function render(){renderMode();renderTree();renderStats();renderGrid();if(state.mode==='step')renderStep()}
+document.getElementById('modePass').onclick=()=>{state.mode='pass';save();render()};
+document.getElementById('modeStep').onclick=()=>{state.mode='step';save();render()};
+document.getElementById('scheme').value=state.scheme;document.getElementById('runL').value=state.runL;document.getElementById('runG').value=state.runG;
+document.getElementById('scheme').onchange=e=>{state.scheme=e.target.value;save();render()};
+document.getElementById('runL').onchange=e=>{state.runL=Math.max(1,+e.target.value||1);save();render()};
+document.getElementById('runG').onchange=e=>{state.runG=Math.max(1,+e.target.value||1);save();render()};
+document.getElementById('stepNo').onchange=e=>{state.step=Math.min(schedule().length,Math.max(1,+e.target.value||1));save();render()};
+document.getElementById('showGraph').onchange=e=>{state.graph=e.target.checked;save();render()};
+document.getElementById('stepPrev').onclick=()=>{state.step=Math.max(1,state.step-1);save();render()};
+document.getElementById('stepNext').onclick=()=>{state.step=Math.min(schedule().length,state.step+1);save();render()};
+render();
+
+document.getElementById('reset').onclick=()=>{
+  const m=document.getElementById('msg');
+  if(m.dataset.arm){state.score={};save();render();m.textContent='Cleared.';delete m.dataset.arm;return}
+  m.dataset.arm='1';m.textContent='Tap again to confirm clearing all 240 scores.';
+  setTimeout(()=>{delete m.dataset.arm;if(m.textContent.startsWith('Tap'))m.textContent=''},4000);
+};
+document.getElementById('copy').onclick=()=>{
+  const c=counts();let lines=[`240 Rubu’ — ${PASSES[state.pass].name} — A ${c.A} / B ${c.B} / C ${c.C}`];
+  for(let j=1;j<=30;j++){let row='';for(let r=1;r<=8;r++)row+=state.score[id(j,r)]||'·';lines.push(`Juz ${String(j).padStart(2,'0')}  ${row}`)}
+  const text=lines.join('\n');const m=document.getElementById('msg');
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove();m.textContent='Copied.'};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>m.textContent='Copied.').catch(fb);else fb();
+};
+</script>
+</body>
+</html>
