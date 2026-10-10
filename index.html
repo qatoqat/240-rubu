@@ -146,6 +146,7 @@ function cellBtn(j,r){
   const sc=state.score[id(j,r)]||'';const c=document.createElement('button');c.type='button';
   c.className='cell '+sc;c.textContent=sc||'·';c.setAttribute('aria-label',`Juz ${j} rubu’ ${r}: ${sc||'not scored'}`);
   c.onclick=()=>{const n=NEXT[state.score[id(j,r)]||''];if(n)state.score[id(j,r)]=n;else delete state.score[id(j,r)];save();render()};
+  c.oncontextmenu=e=>{e.preventDefault();delete state.score[id(j,r)];save();render()};
   return c;
 }
 function renderToday(sch){
