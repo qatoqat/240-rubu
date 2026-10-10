@@ -36,6 +36,9 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 .btn:hover{border-color:var(--accent)}.btn.danger{color:var(--c)}
 .btn:focus-visible,.chip:focus-visible,.cell:focus-visible,.rung:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .today{padding:14px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.thead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.clean{font:inherit;font-size:.8rem;padding:3px 9px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
+.clean.on{background:var(--a);border-color:var(--a);color:#fff}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{position:relative;overflow:hidden;font-family:var(--mono);font-size:.95rem;min-width:46px;padding:7px 10px;border-radius:5px;background:var(--accent-soft);color:var(--ink);border:1px solid transparent;cursor:pointer}
 .chip.new{background:var(--new-bg);color:var(--new-fg)}
@@ -50,10 +53,6 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 .cell.A{background:var(--a);border-color:var(--a);color:#fff}
 .cell.B{background:var(--b);border-color:var(--b);color:#1d2321}
 .cell.C{background:var(--c);border-color:var(--c);color:#fff}
-.ladder{display:grid;gap:2px}
-.rung{height:16px;border-radius:2px;background:var(--off);font-size:.62rem;line-height:16px;text-align:center;color:var(--muted);cursor:pointer;border:0;padding:0}
-.rung.done{background:var(--a);color:#fff}
-.rung.cur{outline:2px solid var(--accent);outline-offset:1px}
 .hint{color:var(--muted);font-size:.85rem;margin:6px 0 0}
 .gwrap{overflow-x:auto}
 .gt{border-collapse:separate;border-spacing:2px;font-family:var(--mono);font-size:.7rem;width:100%;table-layout:fixed;font-variant-numeric:tabular-nums}
@@ -101,7 +100,6 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
   </div>
 
   <div class="today" id="today"></div>
-  <div class="ladder" id="ladder"></div>
   <div id="graph" hidden></div>
 
 
@@ -119,7 +117,7 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
       <dt>Capped</dt><dd>No juz runs more than L steps in a row, then rests G. Filled from the least-recited juz. Cannot hold past 30·L/(L+G) juz per step.</dd>
       <dt>Formula</dt><dd>juz = 1 + (offset + ⌊i·30/k⌋) mod 30, i = 0 … k−1.</dd>
       <dt>Chips</dt><dd>Blue: first time in this scheme. Amber: back after a gap. Red border: has a C. Corner: progress, red → yellow → green.</dd>
-      <dt>Ladder</dt><dd>Tap the current rung to mark the step clean; tap another to jump.</dd>
+      <dt>Clean</dt><dd>Mark the step clean once every juz in it is A, then move the slider on.</dd>
       <dt>Graph</dt><dd>Rows steps, columns juz. Merged block = carried over (green edge); red edge = over the cap.</dd>
     </dl>
     <div class="mfoot"><span id="stat"></span><button class="btn" id="copy">Copy summary</button><button class="btn danger" id="reset">Clear scores</button><span class="hint" id="msg"></span></div>
@@ -174,7 +172,8 @@ function renderToday(sch){
   const chips=cur.map(j=>{const cls=!seen.has(j)?'new':!prev.includes(j)?'back':'';const pr=progress(j);
     return `<button type="button" class="chip ${cls}${weakJuz(j)?' weakj':''}${state.openJuz===j?' open':''}" data-j="${j}" aria-expanded="${state.openJuz===j}">${j}${pr?`<i style="--corner:${corner(pr.p)}"></i>`:''}</button>`}).join('');
   const t=document.getElementById('today');
-  t.innerHTML=`<div class="eyebrow">Step ${k} · ${cur.length} juz</div><div class="chips">${chips}</div><div id="pop"></div>`;
+  t.innerHTML=`<div class="thead"><span class="eyebrow">Step ${k} · ${cur.length} juz</span><button type="button" class="clean${state.stepDone[k]?' on':''}" id="cleanBtn" aria-pressed="${!!state.stepDone[k]}">✓ clean</button></div><div class="chips">${chips}</div><div id="pop"></div>`;
+  t.querySelector('#cleanBtn').onclick=()=>{state.stepDone[k]=!state.stepDone[k];save();render()};
   t.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const j=+b.dataset.j;state.openJuz=state.openJuz===j?null:j;save();render()});
   const j=state.openJuz;if(!j||!cur.includes(j)){state.openJuz=null;return}
   const box=document.createElement('div');box.className='pop';
@@ -182,11 +181,6 @@ function renderToday(sch){
   const row=document.createElement('div');row.className='poprow';
   for(let r=1;r<=8;r++){const w=document.createElement('div');w.className='popcell';w.innerHTML=`<span>${r}</span>`;w.appendChild(cellBtn(j,r));row.appendChild(w)}
   box.appendChild(row);t.querySelector('#pop').appendChild(box);
-}
-function renderLadder(sch){
-  const lad=document.getElementById('ladder');lad.innerHTML='';lad.style.gridTemplateColumns=`repeat(${sch.length},1fr)`;
-  for(let i=1;i<=sch.length;i++){const b=document.createElement('button');b.type='button';b.className='rung'+(state.stepDone[i]?' done':'')+(i===state.step?' cur':'');b.textContent=i;
-    b.onclick=()=>{if(i===state.step)state.stepDone[i]=!state.stepDone[i];else state.step=i;save();render()};lad.appendChild(b)}
 }
 function counts(){const c={A:0,B:0,C:0};for(const k in state.score)c[state.score[k]]++;return c}
 function renderStats(sch){
@@ -210,7 +204,7 @@ function render(){
   document.getElementById('capL').hidden=document.getElementById('capG').hidden=state.scheme!=='capped';
   const sn=document.getElementById('stepNo');sn.value=state.step;sn.max=sch.length;document.getElementById('stepVal').textContent=state.step;
   document.getElementById('showGraph').checked=!!state.graph;
-  renderToday(sch);renderLadder(sch);renderStats(sch);renderGraph(sch);
+  renderToday(sch);renderStats(sch);renderGraph(sch);
 }
 document.getElementById('scheme').onchange=e=>{state.scheme=e.target.value;state.openJuz=null;save();render()};
 document.getElementById('runL').onchange=e=>{state.runL=Math.max(1,+e.target.value||1);save();render()};
