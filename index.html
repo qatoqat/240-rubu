@@ -27,7 +27,6 @@
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:24px 48px}
 .wrap{max-width:900px;margin:0 auto;display:grid;gap:18px}
 h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spacing:-.01em}
-.sub{color:var(--muted);margin:2px 0 0}
 .eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .ctl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:.9rem}
 .ctl label{display:inline-flex;gap:6px;align-items:center;color:var(--muted)}
@@ -36,7 +35,7 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 .btn{font:inherit;font-size:.9rem;padding:5px 11px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
 .btn:hover{border-color:var(--accent)}.btn.danger{color:var(--c)}
 .btn:focus-visible,.chip:focus-visible,.cell:focus-visible,.rung:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.today{padding:14px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;background:var(--panel)}
+.today{padding:14px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{position:relative;overflow:hidden;font-family:var(--mono);font-size:.95rem;min-width:46px;padding:7px 10px;border-radius:5px;background:var(--accent-soft);color:var(--ink);border:1px solid transparent;cursor:pointer}
 .chip.new{background:var(--new-bg);color:var(--new-fg)}
@@ -55,9 +54,6 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 .rung{height:16px;border-radius:2px;background:var(--off);font-size:.62rem;line-height:16px;text-align:center;color:var(--muted);cursor:pointer;border:0;padding:0}
 .rung.done{background:var(--a);color:#fff}
 .rung.cur{outline:2px solid var(--accent);outline-offset:1px}
-.stats{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:.85rem;font-variant-numeric:tabular-nums;color:var(--muted)}
-.stats b{color:var(--ink)}
-.dot{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:5px}
 .hint{color:var(--muted);font-size:.85rem;margin:6px 0 0}
 .gwrap{overflow-x:auto}
 .gt{border-collapse:separate;border-spacing:2px;font-family:var(--mono);font-size:.7rem;width:100%;table-layout:fixed;font-variant-numeric:tabular-nums}
@@ -67,12 +63,19 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 .gt td.b{background:var(--new-bg);color:var(--new-fg)}.gt td.a{background:var(--back-bg);color:var(--back-fg)}
 .gt td.run{border-left:2px solid var(--a)}.gt td.over{border-left:2px solid var(--c)}
 .gt tfoot td{color:var(--muted)}
-.guide{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:8px 12px}
-.guide summary{cursor:pointer;font-weight:600}
-.guide dl{margin:8px 0 0;display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;font-size:.9rem}
-.guide dt{font-weight:600}.guide dd{margin:0;color:var(--muted);max-width:62ch}
-.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-@media (max-width:560px){.guide dl{grid-template-columns:1fr}}
+.slide{flex:1 1 220px;min-width:0}
+.slide b{font-family:var(--mono);min-width:2ch;color:var(--ink)}
+.slide input{flex:1;min-width:0;accent-color:var(--accent);padding:0;border:0;background:none}
+.help{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:600 .95rem var(--body);cursor:pointer}
+.help:hover{border-color:var(--accent);color:var(--accent)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px;z-index:10}
+.sheet{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:14px 16px}
+.mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sheet dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;font-size:.9rem}
+.sheet dt{font-weight:600}.sheet dd{margin:0;color:var(--muted)}
+.mfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
+.mfoot #stat{font-family:var(--mono);font-size:.85rem;color:var(--muted);margin-right:auto}
+@media (max-width:560px){.sheet dl{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -80,7 +83,6 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 <div class="wrap">
   <header>
     <h1>240 Rubu&#8217;</h1>
-    <p class="sub">Step k recites k juz. Tap a juz, score its rubu&#8217;: A clean · B hesitated · C opened the mushaf.</p>
   </header>
 
   <div class="ctl">
@@ -93,36 +95,34 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
     </select>
     <label id="capL">Run <input type="number" id="runL" min="1" max="30" value="2"></label>
     <label id="capG">Rest <input type="number" id="runG" min="1" max="30" value="1"></label>
-    <label>Step <input type="number" id="stepNo" min="1" max="30" value="1"></label>
-    <button class="btn" id="stepPrev" aria-label="Previous step">−</button>
-    <button class="btn" id="stepNext" aria-label="Next step">+</button>
+    <label class="slide">Step <b id="stepVal">1</b><input type="range" id="stepNo" min="1" max="30" value="1"></label>
     <label><input type="checkbox" id="showGraph"> Graph</label>
+    <button class="help" id="helpBtn" aria-label="Guide">?</button>
   </div>
 
   <div class="today" id="today"></div>
   <div class="ladder" id="ladder"></div>
-  <div class="stats" id="stats"></div>
   <div id="graph" hidden></div>
 
-  <details class="guide">
-    <summary>Guide</summary>
+
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mt">
+    <div class="mhead"><b id="mt">Guide</b><button class="help" id="closeBtn" aria-label="Close">×</button></div>
     <dl>
+      <dt>Scoring</dt><dd>Tap a juz, then each rubu&#8217;: A clean · B hesitated · C opened the mushaf. Hold a step until every juz in it is clean.</dd>
       <dt>Simple</dt><dd>Twelve fixed steps: 3 juz ten apart, 6 five apart, eight odd/even blocks of five, the two sets of five-juz blocks, then each half.</dd>
       <dt>Anchored</dt><dd>Step k: k juz from juz 1, spaced 30/k. Juz 1 in every step; juz 30 only at step 30.</dd>
       <dt>Rotating</dt><dd>Same spacing, step k starts at juz k. Each juz recited 9–22 times over 30 steps.</dd>
       <dt>Balanced</dt><dd>Same spacing, start chosen per step to keep totals even: 14–17 per juz.</dd>
       <dt>Capped</dt><dd>No juz runs more than L steps in a row, then rests G. Filled from the least-recited juz. Cannot hold past 30·L/(L+G) juz per step.</dd>
       <dt>Formula</dt><dd>juz = 1 + (offset + ⌊i·30/k⌋) mod 30, i = 0 … k−1.</dd>
-      <dt>Chips</dt><dd>Blue: first time in this scheme. Amber: back after a gap. Red border: has a C. Corner: progress, red → yellow → green as rubu&#8217; are scored A.</dd>
+      <dt>Chips</dt><dd>Blue: first time in this scheme. Amber: back after a gap. Red border: has a C. Corner: progress, red → yellow → green.</dd>
       <dt>Ladder</dt><dd>Tap the current rung to mark the step clean; tap another to jump.</dd>
       <dt>Graph</dt><dd>Rows steps, columns juz. Merged block = carried over (green edge); red edge = over the cap.</dd>
     </dl>
-  </details>
-
-  <div class="tools">
-    <button class="btn" id="copy">Copy summary</button>
-    <button class="btn danger" id="reset">Clear scores</button>
-    <span class="hint" id="msg"></span>
+    <div class="mfoot"><span id="stat"></span><button class="btn" id="copy">Copy summary</button><button class="btn danger" id="reset">Clear scores</button><span class="hint" id="msg"></span></div>
   </div>
 </div>
 
@@ -192,9 +192,7 @@ function counts(){const c={A:0,B:0,C:0};for(const k in state.score)c[state.score
 function renderStats(sch){
   const c=counts(),weak=[];for(let j=1;j<=30;j++)if(weakJuz(j))weak.push(j);
   const tally=Array(31).fill(0);sch.forEach(r=>r.forEach(j=>tally[j]++));
-  document.getElementById('stats').innerHTML=
-    `<span><b>${c.A+c.B+c.C}</b>/240</span><span><i class="dot" style="background:var(--a)"></i><b>${c.A}</b></span><span><i class="dot" style="background:var(--b)"></i><b>${c.B}</b></span><span><i class="dot" style="background:var(--c)"></i><b>${c.C}</b></span>
-     <span>weak <b>${weak.length?weak.join(' '):'–'}</b></span><span>per juz <b>${Math.min(...tally.slice(1))}–${Math.max(...tally.slice(1))}</b></span>`;
+  document.getElementById('stat').textContent=`${c.A+c.B+c.C}/240 · A ${c.A} B ${c.B} C ${c.C} · weak ${weak.length?weak.join(' '):'–'} · per juz ${Math.min(...tally.slice(1))}–${Math.max(...tally.slice(1))}`;
 }
 function renderGraph(sch){
   const g=document.getElementById('graph');g.hidden=!state.graph;if(!state.graph){g.innerHTML='';return}
@@ -210,16 +208,19 @@ function render(){
   document.getElementById('scheme').value=state.scheme;
   document.getElementById('runL').value=state.runL;document.getElementById('runG').value=state.runG;
   document.getElementById('capL').hidden=document.getElementById('capG').hidden=state.scheme!=='capped';
-  const sn=document.getElementById('stepNo');sn.value=state.step;sn.max=sch.length;
+  const sn=document.getElementById('stepNo');sn.value=state.step;sn.max=sch.length;document.getElementById('stepVal').textContent=state.step;
   document.getElementById('showGraph').checked=!!state.graph;
   renderToday(sch);renderLadder(sch);renderStats(sch);renderGraph(sch);
 }
 document.getElementById('scheme').onchange=e=>{state.scheme=e.target.value;state.openJuz=null;save();render()};
 document.getElementById('runL').onchange=e=>{state.runL=Math.max(1,+e.target.value||1);save();render()};
 document.getElementById('runG').onchange=e=>{state.runG=Math.max(1,+e.target.value||1);save();render()};
-document.getElementById('stepNo').onchange=e=>{state.step=Math.min(schedule().length,Math.max(1,+e.target.value||1));save();render()};
-document.getElementById('stepPrev').onclick=()=>{state.step=Math.max(1,state.step-1);save();render()};
-document.getElementById('stepNext').onclick=()=>{state.step=Math.min(schedule().length,state.step+1);save();render()};
+document.getElementById('stepNo').oninput=e=>{state.step=Math.min(schedule().length,Math.max(1,+e.target.value||1));state.openJuz=null;save();render()};
+const modal=document.getElementById('modal');
+document.getElementById('helpBtn').onclick=()=>{modal.hidden=false};
+document.getElementById('closeBtn').onclick=()=>{modal.hidden=true};
+modal.onclick=e=>{if(e.target===modal)modal.hidden=true};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')modal.hidden=true});
 document.getElementById('showGraph').onchange=e=>{state.graph=e.target.checked;save();render()};
 document.getElementById('reset').onclick=()=>{
   const m=document.getElementById('msg');
