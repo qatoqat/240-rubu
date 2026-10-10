@@ -65,16 +65,13 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 .slide{flex:1 1 220px;min-width:0}
 .slide b{font-family:var(--mono);min-width:2ch;color:var(--ink)}
 .slide input{flex:1;min-width:0;accent-color:var(--accent);padding:0;border:0;background:none}
-.help{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:600 .95rem var(--body);cursor:pointer}
+.help{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:1rem var(--body);cursor:pointer;line-height:1}
 .help:hover{border-color:var(--accent);color:var(--accent)}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px;z-index:10}
 .sheet{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:14px 16px}
 .mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.sheet dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;font-size:.9rem}
-.sheet dt{font-weight:600}.sheet dd{margin:0;color:var(--muted)}
-.mfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
+.mfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
 .mfoot #stat{font-family:var(--mono);font-size:.85rem;color:var(--muted);margin-right:auto}
-@media (max-width:560px){.sheet dl{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -96,7 +93,7 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
     <label id="capG">Rest <input type="number" id="runG" min="1" max="30" value="1"></label>
     <label class="slide">Step <b id="stepVal">1</b><input type="range" id="stepNo" min="1" max="30" value="1"></label>
     <label><input type="checkbox" id="showGraph"> Graph</label>
-    <button class="help" id="helpBtn" aria-label="Guide">?</button>
+    <button class="help" id="helpBtn" aria-label="Settings">&#9881;</button>
   </div>
 
   <div class="today" id="today"></div>
@@ -107,19 +104,7 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 
 <div class="modal" id="modal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mt">
-    <div class="mhead"><b id="mt">Guide</b><button class="help" id="closeBtn" aria-label="Close">×</button></div>
-    <dl>
-      <dt>Scoring</dt><dd>Tap a juz, then each rubu&#8217;: A clean · B hesitated · C opened the mushaf. Hold a step until every juz in it is clean.</dd>
-      <dt>Simple</dt><dd>Twelve fixed steps: 3 juz ten apart, 6 five apart, eight odd/even blocks of five, the two sets of five-juz blocks, then each half.</dd>
-      <dt>Anchored</dt><dd>Step k: k juz from juz 1, spaced 30/k. Juz 1 in every step; juz 30 only at step 30.</dd>
-      <dt>Rotating</dt><dd>Same spacing, step k starts at juz k. Each juz recited 9–22 times over 30 steps.</dd>
-      <dt>Balanced</dt><dd>Same spacing, start chosen per step to keep totals even: 14–17 per juz.</dd>
-      <dt>Capped</dt><dd>No juz runs more than L steps in a row, then rests G. Filled from the least-recited juz. Cannot hold past 30·L/(L+G) juz per step.</dd>
-      <dt>Formula</dt><dd>juz = 1 + (offset + ⌊i·30/k⌋) mod 30, i = 0 … k−1.</dd>
-      <dt>Chips</dt><dd>Blue: first time in this scheme. Amber: back after a gap. Red border: has a C. Corner: progress, red → yellow → green.</dd>
-      <dt>Clean</dt><dd>Mark the step clean once every juz in it is A, then move the slider on.</dd>
-      <dt>Graph</dt><dd>Rows steps, columns juz. Merged block = carried over (green edge); red edge = over the cap.</dd>
-    </dl>
+    <div class="mhead"><b id="mt">Settings</b><button class="help" id="closeBtn" aria-label="Close">×</button></div>
     <div class="mfoot"><span id="stat"></span><button class="btn" id="copy">Copy summary</button><button class="btn danger" id="reset">Clear scores</button><span class="hint" id="msg"></span></div>
   </div>
 </div>
