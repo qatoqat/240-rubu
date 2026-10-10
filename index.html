@@ -105,7 +105,7 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 <div class="modal" id="modal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mt">
     <div class="mhead"><b id="mt">Settings</b><button class="help" id="closeBtn" aria-label="Close">×</button></div>
-    <div class="mfoot"><span id="stat"></span><button class="btn" id="copy">Copy summary</button><button class="btn danger" id="reset">Clear scores</button><span class="hint" id="msg"></span></div>
+    <div class="mfoot"><span id="stat"></span><button class="btn danger" id="reset">Clear scores</button><span class="hint" id="msg"></span></div>
   </div>
 </div>
 
@@ -206,13 +206,6 @@ document.getElementById('reset').onclick=()=>{
   if(m.dataset.arm){state.score={};state.stepDone={};save();render();m.textContent='Cleared.';delete m.dataset.arm;return}
   m.dataset.arm='1';m.textContent='Tap again to confirm.';
   setTimeout(()=>{delete m.dataset.arm;if(m.textContent==='Tap again to confirm.')m.textContent=''},4000);
-};
-document.getElementById('copy').onclick=()=>{
-  const c=counts();let lines=[`240 Rubu’ — ${state.scheme} step ${state.step} — A ${c.A} / B ${c.B} / C ${c.C}`];
-  for(let j=1;j<=30;j++){let row='';for(let r=1;r<=8;r++)row+=state.score[id(j,r)]||'·';lines.push(`Juz ${String(j).padStart(2,'0')}  ${row}`)}
-  const text=lines.join('\n'),m=document.getElementById('msg');
-  const fb=()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove();m.textContent='Copied.'};
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>m.textContent='Copied.').catch(fb);else fb();
 };
 render();
 </script>
