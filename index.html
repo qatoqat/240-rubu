@@ -7,7 +7,7 @@
 <title>240 Rubu&#8217;</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: step controls, today's juz as chips (tap one to score its 8 rubu'), a step ladder, optional merged-cell graph. */
+/* Layout: step controls, today's juz as chips (tap one to score its 8 rubu'), optional merged-cell graph. */
 :root{
   --bg:#f7f6f2; --panel:#ffffff; --ink:#1d2321; --muted:#6a716d; --line:#d9ddd8;
   --accent:#1f6f5c; --accent-soft:#dcebe5;
@@ -34,7 +34,7 @@ h1{font-family:var(--display);font-weight:500;font-size:2rem;margin:0;letter-spa
 .ctl input[type=number]{width:4.2em}
 .btn{font:inherit;font-size:.9rem;padding:5px 11px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
 .btn:hover{border-color:var(--accent)}.btn.danger{color:var(--c)}
-.btn:focus-visible,.chip:focus-visible,.cell:focus-visible,.rung:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn:focus-visible,.chip:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .today{padding:14px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
 .thead{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .clean{font:inherit;font-size:.8rem;padding:3px 9px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
